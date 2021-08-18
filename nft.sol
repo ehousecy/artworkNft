@@ -1876,16 +1876,15 @@ contract ArtWorksNft is ERC721, Ownable {
         string createdEra;
         string createdTime;
         string style;
+        
+        string length;
+        string width;
+        string height;
+        string caliber;
+        string capacity;
+        string weight;
     }
     
-    struct artWorkScale {
-        uint256 length;
-        uint256 width;
-        uint256 height;
-        uint256 caliber;
-        uint256 capacity;
-        uint256 weight;
-    }
     
     struct artWorkImage {
         string imageUrl;
@@ -1895,7 +1894,6 @@ contract ArtWorksNft is ERC721, Ownable {
     
     struct artWork {
         artWorkBasicInfo awbi;
-        artWorkScale aws;
         bool isDeposited;
     }
     
@@ -1933,21 +1931,15 @@ contract ArtWorksNft is ERC721, Ownable {
         }
     }
     
-    // function bidTx(txInfo memory _artWorkTx, uint256 tokenId) public onlyOwner {
-        
-    //     require(_checkEmptyString(tokenIdToArtWork[tokenId].name), "Invalid tokenId, token doesn't exist");
-    //     require(_checkEmptyString(_artWorkTx.bidLocation), "Invalid artWork on sale information");
-    //     artWorkTx[tokenId] = _artWorkTx;
-    // }
+    function getArtWorkByTokenId(uint256 tokenId) public view returns (artWork memory) {
+        artWork memory aw = tokenIdToArtWork[tokenId];
+        return aw;
+    }
     
-    // function _checkEmptyString(string memory str) internal pure returns (bool) {
-        
-    //     bytes memory tempEmptyStringTest = bytes(str); // Uses memory
-    //     if (tempEmptyStringTest.length == 0) {
-    //         // emptyStringTest is an empty string
-    //         return true;
-    //     }
-    //     return false;
-    // }
+    function getArtWorkImagesByTokenIdAndIndex(uint256 tokenId, uint256 index) public view returns (artWorkImage memory) {
+        mapping(uint256=>artWorkImage) storage imageMap = tokenIdToArtWorkImages[tokenId];
+        return imageMap[index];
+    }
+    
 }
 
