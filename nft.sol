@@ -322,7 +322,7 @@ library Address {
      * _Available since v3.1._
      */
     function functionCall(address target, bytes memory data) internal returns (bytes memory) {
-      return functionCall(target, data, "Address: low-level call failed");
+        return functionCall(target, data, "Address: low-level call failed");
     }
 
     /**
@@ -552,16 +552,16 @@ library EnumerableSet {
         return set._values.length;
     }
 
-   /**
-    * @dev Returns the value stored at position `index` in the set. O(1).
-    *
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
+    /**
+     * @dev Returns the value stored at position `index` in the set. O(1).
+     *
+     * Note that there are no guarantees on the ordering of values inside the
+     * array, and it may change when more values are added or removed.
+     *
+     * Requirements:
+     *
+     * - `index` must be strictly less than {length}.
+     */
     function _at(Set storage set, uint256 index) private view returns (bytes32) {
         require(set._values.length > index, "EnumerableSet: index out of bounds");
         return set._values[index];
@@ -607,16 +607,16 @@ library EnumerableSet {
         return _length(set._inner);
     }
 
-   /**
-    * @dev Returns the value stored at position `index` in the set. O(1).
-    *
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
+    /**
+     * @dev Returns the value stored at position `index` in the set. O(1).
+     *
+     * Note that there are no guarantees on the ordering of values inside the
+     * array, and it may change when more values are added or removed.
+     *
+     * Requirements:
+     *
+     * - `index` must be strictly less than {length}.
+     */
     function at(Bytes32Set storage set, uint256 index) internal view returns (bytes32) {
         return _at(set._inner, index);
     }
@@ -661,16 +661,16 @@ library EnumerableSet {
         return _length(set._inner);
     }
 
-   /**
-    * @dev Returns the value stored at position `index` in the set. O(1).
-    *
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
+    /**
+     * @dev Returns the value stored at position `index` in the set. O(1).
+     *
+     * Note that there are no guarantees on the ordering of values inside the
+     * array, and it may change when more values are added or removed.
+     *
+     * Requirements:
+     *
+     * - `index` must be strictly less than {length}.
+     */
     function at(AddressSet storage set, uint256 index) internal view returns (address) {
         return address(uint160(uint256(_at(set._inner, index))));
     }
@@ -716,16 +716,16 @@ library EnumerableSet {
         return _length(set._inner);
     }
 
-   /**
-    * @dev Returns the value stored at position `index` in the set. O(1).
-    *
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
+    /**
+     * @dev Returns the value stored at position `index` in the set. O(1).
+     *
+     * Note that there are no guarantees on the ordering of values inside the
+     * array, and it may change when more values are added or removed.
+     *
+     * Requirements:
+     *
+     * - `index` must be strictly less than {length}.
+     */
     function at(UintSet storage set, uint256 index) internal view returns (uint256) {
         return uint256(_at(set._inner, index));
     }
@@ -859,16 +859,16 @@ library EnumerableMap {
         return map._entries.length;
     }
 
-   /**
-    * @dev Returns the key-value pair stored at position `index` in the map. O(1).
-    *
-    * Note that there are no guarantees on the ordering of entries inside the
-    * array, and it may change when more entries are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
+    /**
+     * @dev Returns the key-value pair stored at position `index` in the map. O(1).
+     *
+     * Note that there are no guarantees on the ordering of entries inside the
+     * array, and it may change when more entries are added or removed.
+     *
+     * Requirements:
+     *
+     * - `index` must be strictly less than {length}.
+     */
     function _at(Map storage map, uint256 index) private view returns (bytes32, bytes32) {
         require(map._entries.length > index, "EnumerableMap: index out of bounds");
 
@@ -951,15 +951,15 @@ library EnumerableMap {
         return _length(map._inner);
     }
 
-   /**
-    * @dev Returns the element stored at position `index` in the set. O(1).
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
+    /**
+     * @dev Returns the element stored at position `index` in the set. O(1).
+     * Note that there are no guarantees on the ordering of values inside the
+     * array, and it may change when more values are added or removed.
+     *
+     * Requirements:
+     *
+     * - `index` must be strictly less than {length}.
+     */
     function at(UintToAddressMap storage map, uint256 index) internal view returns (uint256, address) {
         (bytes32 key, bytes32 value) = _at(map._inner, index);
         return (uint256(key), address(uint160(uint256(value))));
@@ -1817,18 +1817,18 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
      * @return bool whether the call correctly returned the expected magic value
      */
     function _checkOnERC721Received(address from, address to, uint256 tokenId, bytes memory _data)
-        private returns (bool)
+    private returns (bool)
     {
         if (!to.isContract()) {
             return true;
         }
         bytes memory returndata = to.functionCall(abi.encodeWithSelector(
-            IERC721Receiver(to).onERC721Received.selector,
-            _msgSender(),
-            from,
-            tokenId,
-            _data
-        ), "ERC721: transfer to non ERC721Receiver implementer");
+                IERC721Receiver(to).onERC721Received.selector,
+                _msgSender(),
+                from,
+                tokenId,
+                _data
+            ), "ERC721: transfer to non ERC721Receiver implementer");
         bytes4 retval = abi.decode(returndata, (bytes4));
         return (retval == _ERC721_RECEIVED);
     }
@@ -1864,7 +1864,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
 
 // File: contracts/ArtWorksNft.sol
 pragma solidity ^0.7.0;
-pragma abicoder v2; 
+pragma abicoder v2;
 
 contract ArtWorksNft is ERC721, Ownable {
     using SafeMath for uint256;
@@ -1876,7 +1876,7 @@ contract ArtWorksNft is ERC721, Ownable {
         string createdEra;
         string createdTime;
         string style;
-        
+
         string length;
         string width;
         string height;
@@ -1884,19 +1884,45 @@ contract ArtWorksNft is ERC721, Ownable {
         string capacity;
         string weight;
     }
-    
-    
+
+
     struct artWorkImage {
         string imageUrl;
         string hash;
     }
-    
-    
+
+
     struct artWork {
         artWorkBasicInfo awbi;
         bool isDeposited;
     }
-    
+
+    //tradeInfo records the bid details, including bid location, bid time,
+    // bid identity, bid result, bid price
+    // each tradeInfo fields are defined as string
+    struct tradeInfo {
+        string bidLocation;
+        string bidTime;
+        string bidResult;
+        string bidPrice;
+    }
+
+    // bid evidence info including image url and hashed value
+    // both fields are defined as string type
+    struct bidEvidence {
+        string imageUrl;
+        string hashValue;
+    }
+
+
+
+    // escrow info, recording the escrow state and late update time
+    enum EscrowTypes {putIn, takeOut}
+    struct escrowInfo {
+        EscrowTypes escrowType;
+        string updateTime;
+    }
+
     // struct txInfo {
     //     string bidLocation;
     //     string bidTime;
@@ -1904,7 +1930,7 @@ contract ArtWorksNft is ERC721, Ownable {
     //     string bidResult;
     //     uint256 bidPrice;
     // }
-    
+
     constructor(string memory name, string memory symbol)  ERC721(name, symbol) {
     }
 
@@ -1912,7 +1938,14 @@ contract ArtWorksNft is ERC721, Ownable {
     mapping (uint256 => artWork) private tokenIdToArtWork;
     mapping (uint256 => mapping(uint256=>artWorkImage)) private tokenIdToArtWorkImages;
     // mapping (uint256 => txInfo ) private artWorkTx;
-    
+
+
+    // record NFT transfer history and related information
+    mapping(string => tradeInfo) public tradeOnChain;
+    mapping(string => bidEvidence[]) public  deliveryOnChain;
+    mapping(uint256 => escrowInfo) public escrowOnChain;
+
+
     function mintArtWorksToken(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId) public onlyOwner {
         totalSupply().add(1);
         _safeMint(msg.sender, tokenId);
@@ -1921,7 +1954,7 @@ contract ArtWorksNft is ERC721, Ownable {
             tokenIdToArtWorkImages[tokenId][i] = awImages[i];
         }
     }
-    
+
     function mintArtWorksToken2Owner(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId, address owner) public onlyOwner {
         totalSupply().add(1);
         _safeMint(owner, tokenId);
@@ -1930,16 +1963,32 @@ contract ArtWorksNft is ERC721, Ownable {
             tokenIdToArtWorkImages[tokenId][i] = awImages[i];
         }
     }
-    
+
     function getArtWorkByTokenId(uint256 tokenId) public view returns (artWork memory) {
         artWork memory aw = tokenIdToArtWork[tokenId];
         return aw;
     }
-    
+
     function getArtWorkImagesByTokenIdAndIndex(uint256 tokenId, uint256 index) public view returns (artWorkImage memory) {
         mapping(uint256=>artWorkImage) storage imageMap = tokenIdToArtWorkImages[tokenId];
         return imageMap[index];
     }
-    
+
+    // update bid info to blockchain
+    function updateTradeInfo(string memory bidId, tradeInfo memory info) public onlyOwner{
+        tradeOnChain[bidId] = info;
+    }
+
+    function deliverNFT(string memory bidId, bidEvidence[] memory evidence) public onlyOwner{
+        require(evidence.length <= 4, "too many evidence");
+        for ( uint8 i = 0; i< evidence.length; i++ ){
+            deliveryOnChain[bidId].push(evidence[i]);
+        }
+    }
+
+    function updateEscrow(uint256 tokenId, escrowInfo memory info) public onlyOwner {
+        require(_exists(tokenId), "ERC721: token not minted");
+        escrowOnChain[tokenId] = info;
+    }
 }
 
