@@ -1868,6 +1868,9 @@ pragma abicoder v2;
 
 contract ArtWorksNft is ERC721, Ownable {
     using SafeMath for uint256;
+    event UpdatedTradeInfo(uint256 indexed tokenId, string indexed bidId );
+    event DeliveredNFT(uint256 indexed tokenId, string indexed bidId );
+    event EscrowUpdated(uint256 indexed tokenId);
 
     struct artWorkBasicInfo {
         string name;
@@ -1904,6 +1907,7 @@ contract ArtWorksNft is ERC721, Ownable {
     struct tradeInfo {
         string bidLocation;
         string bidTime;
+        string bidId;
         string bidResult;
         string bidPrice;
     }
@@ -1913,6 +1917,10 @@ contract ArtWorksNft is ERC721, Ownable {
     struct bidEvidence {
         string imageUrl;
         string hashValue;
+    }
+    struct NFTDelivery{
+        bidEvidence[] evidence;
+        string bidId;
     }
 
 
@@ -1942,9 +1950,9 @@ contract ArtWorksNft is ERC721, Ownable {
 
 
     // record NFT transfer history and related information
-    mapping(string => tradeInfo) public tradeOnChain;
-    mapping(string => bidEvidence[]) public  deliveryOnChain;
-    mapping(uint256 => escrowInfo) public escrowOnChain;
+    mapping(uint256 => tradeInfo[]) public tradeOnChain;
+    mapping(uint256 => mapping(string => bidEvidence[])) public  deliveryOnChain;
+    mapping(uint256 => escrowInfo[]) public escrowOnChain;
 
 
     function mintArtWorksToken(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId) public onlyOwner {
@@ -1976,20 +1984,30 @@ contract ArtWorksNft is ERC721, Ownable {
     }
 
     // update bid info to blockchain
-    function updateTradeInfo(string memory bidId, tradeInfo memory info) public onlyOwner{
-        tradeOnChain[bidId] = info;
+    function updateTradeInfo(uint256 tokenId,  tradeInfo memory info) public onlyOwner{
+        require(_exists(tokenId), "ERC721: token not minted");
+        tradeInfo[] storage ti = tradeOnChain[tokenId];
+        ti.push(info);
+        emit UpdatedTradeInfo(tokenId, info.bidId);
     }
 
-    function deliverNFT(string memory bidId, bidEvidence[] memory evidence, address receiver) {
-        require(evidence.length <= 4, "too many evidence");
-        for ( uint8 i = 0; i< evidence.length; i++ ){
-            deliveryOnChain[bidId].push(evidence[i]);
+    function deliverNFT(uint256 tokenId, NFTDelivery memory delivery, address receiver) public {
+        require(ownerOf(tokenId) == msg.sender, "owner does not match");
+        require(delivery.evidence.length <= 4, "too much evidence");
+        mapping(string => bidEvidence[]) storage evidence = deliveryOnChain[tokenId];
+        bidEvidence[] storage newBE = evidence[delivery.bidId];
+        for ( uint8 i = 0; i< delivery.evidence.length; i++ ){
+            newBE.push(delivery.evidence[i]);
         }
+        safeTransferFrom(msg.sender, receiver,tokenId);
+        emit DeliveredNFT(tokenId, delivery.bidId);
     }
 
     function updateEscrow(uint256 tokenId, escrowInfo memory info) public onlyOwner {
         require(_exists(tokenId), "ERC721: token not minted");
-        escrowOnChain[tokenId] = info;
+        escrowInfo[] storage escrowed = escrowOnChain[tokenId];
+        escrowed.push(info);
+        emit EscrowUpdated(tokenId);
     }
 }
 
