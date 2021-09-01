@@ -1868,8 +1868,8 @@ pragma abicoder v2;
 
 contract ArtWorksNft is ERC721, Ownable {
     using SafeMath for uint256;
-    event UpdatedTradeInfo(uint256 indexed tokenId, string indexed bidId );
-    event DeliveredNFT(uint256 indexed tokenId, string indexed bidId );
+    event UpdatedTradeInfo(uint256 indexed tokenId, string indexed bidId);
+    event DeliveredNFT(uint256 indexed tokenId, string indexed bidId);
     event EscrowUpdated(uint256 indexed tokenId);
 
     struct artWorkBasicInfo {
@@ -1932,13 +1932,6 @@ contract ArtWorksNft is ERC721, Ownable {
         string updateTime;
     }
 
-    // struct txInfo {
-    //     string bidLocation;
-    //     string bidTime;
-    //     string bidId;
-    //     string bidResult;
-    //     uint256 bidPrice;
-    // }
 
     constructor(string memory name, string memory symbol)  ERC721(name, symbol) {
     }
@@ -1992,7 +1985,7 @@ contract ArtWorksNft is ERC721, Ownable {
     }
 
     function deliverNFT(uint256 tokenId, NFTDelivery memory delivery, address receiver) public {
-        require(ownerOf(tokenId) == msg.sender, "owner does not match");
+        require(tradeOnChain[tokenId].length > 0, "lack trade info!");
         require(delivery.evidence.length <= 4, "too much evidence");
         mapping(string => bidEvidence[]) storage evidence = deliveryOnChain[tokenId];
         bidEvidence[] storage newBE = evidence[delivery.bidId];
