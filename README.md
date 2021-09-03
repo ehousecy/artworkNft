@@ -64,6 +64,7 @@
 
 |参数|类型|备注|
 |:---:|:---:|:---:|
+|tokenId|uint256|艺术品nft的tokenId|
 |bidId|string|交易的ID|
 |info|tradeInfo（struct），传参为tuple，具体字段参考以下说明|交易信息|
 
@@ -82,8 +83,10 @@
 
 |参数|类型|备注|
 |:---:|:---:|:---:|
+|tokenId|uint256|艺术品nft的tokenId|
 |bidId|string|交易的ID|
 |evidence|bidEvidence（struct）数组，传参为tuple数组，不得超过4组，具体字段参考以下说明|交易凭证|
+|receiver|string|接收地址|
 
 #### bidEvidence字段
 |参数|类型|备注|

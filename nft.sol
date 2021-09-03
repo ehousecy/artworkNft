@@ -1985,7 +1985,6 @@ contract ArtWorksNft is ERC721, Ownable {
     }
 
     function deliverNFT(uint256 tokenId, NFTDelivery memory delivery, address receiver) public {
-        require(tradeOnChain[tokenId].length > 0, "lack trade info!");
         require(delivery.evidence.length <= 4, "too much evidence");
         mapping(string => bidEvidence[]) storage evidence = deliveryOnChain[tokenId];
         bidEvidence[] storage newBE = evidence[delivery.bidId];
