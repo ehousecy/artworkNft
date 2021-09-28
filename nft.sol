@@ -1948,22 +1948,31 @@ contract ArtWorksNft is ERC721, Ownable {
     mapping(uint256 => escrowInfo[]) public escrowOnChain;
 
 
-    function mintArtWorksToken(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId) public onlyOwner {
+    function mintArtWorksToken(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId, string memory tokenURI) public onlyOwner {
         totalSupply().add(1);
         _safeMint(msg.sender, tokenId);
         tokenIdToArtWork[tokenId]=aw;
+        if (bytes(tokenURI).length > 0) {
+            _setTokenURI(tokenId, tokenURI);
+        }
+
         for (uint256 i=0; i < awImages.length; i++) {
             tokenIdToArtWorkImages[tokenId][i] = awImages[i];
         }
     }
 
-    function mintArtWorksToken2Owner(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId, address owner) public onlyOwner {
+    function mintArtWorksToken2Owner(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId, string memory tokenURI, address owner) public onlyOwner {
         totalSupply().add(1);
         _safeMint(owner, tokenId);
         tokenIdToArtWork[tokenId]=aw;
+        if (bytes(tokenURI).length > 0) {
+            _setTokenURI(tokenId, tokenURI);
+        }
+
         for (uint256 i=0; i < awImages.length; i++) {
             tokenIdToArtWorkImages[tokenId][i] = awImages[i];
         }
+        _setTokenURI(tokenId, tokenURI);
     }
 
     function getArtWorkByTokenId(uint256 tokenId) public view returns (artWork memory) {
@@ -1991,7 +2000,7 @@ contract ArtWorksNft is ERC721, Ownable {
         for ( uint8 i = 0; i< delivery.evidence.length; i++ ){
             newBE.push(delivery.evidence[i]);
         }
-        safeTransferFrom(msg.sender, receiver,tokenId);
+        safeTransferFrom(msg.sender, receiver, tokenId);
         emit DeliveredNFT(tokenId, delivery.bidId);
     }
 

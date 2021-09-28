@@ -12,6 +12,7 @@
 |aw|artwork类型的struct，传参为tuple，具体字段参考以下说明|艺术品相关信息|
 |awImages|artWorkImage（struct）数组，传参为tuple数组，具体字段参考以下说明|艺术品的图片信息|
 |tokenId|uint256|艺术品nft的tokenId|
+|tokenURI|string|token的链接，可为空|
 
 传参示例
 ```
@@ -55,6 +56,7 @@
 |aw|artwork类型的struct，传参为tuple，具体字段参考以下说明|艺术品相关信息|
 |awImages|artWorkImage（struct）数组，传参为tuple数组，具体字段参考以下说明|艺术品的图片信息|
 |tokenId|uint256|艺术品nft的tokenId|
+|tokenURI|string|token的链接，可为空|
 |owner|string|指定token的owner|
 
 
@@ -77,7 +79,7 @@
 |bidPrice|string|交易价格|
 
 
-## deliverNFT    
+## deliverNFT
 
 更新NFT交割信息，记录信息包含交易ID及相关凭证。
 
@@ -110,3 +112,4 @@
 |:---:|:---:|:---:|
 |escrowType|uint8|托管状态，枚举类型，0代表入库，1代表出库|
 |updateTime|string|更新时间|
+
