@@ -2012,3 +2012,112 @@ contract ArtWorksNft is ERC721, Ownable {
     }
 }
 
+
+pragma solidity ^0.7.0;
+
+contract awnProxy is ERC721, Ownable {
+    
+    event UpdatedTradeInfo(uint256 indexed tokenId, string indexed bidId);
+    event DeliveredNFT(uint256 indexed tokenId, string indexed bidId);
+    event EscrowUpdated(uint256 indexed tokenId);
+
+    struct artWorkBasicInfo {
+        string name;
+        string number;
+        string author;
+        string createdEra;
+        string createdTime;
+        string style;
+
+        string dimensionType;
+        string length;
+        string width;
+        string height;
+        string caliber;
+        string capacity;
+        string weight;
+    }
+
+
+    struct artWorkImage {
+        string imageUrl;
+        string hash;
+    }
+
+
+    struct artWork {
+        artWorkBasicInfo awbi;
+        bool isDeposited;
+    }
+
+    //tradeInfo records the bid details, including bid location, bid time,
+    // bid identity, bid result, bid price
+    // each tradeInfo fields are defined as string
+    struct tradeInfo {
+        string bidLocation;
+        string bidTime;
+        string bidId;
+        string bidResult;
+        string bidPrice;
+    }
+
+    // bid evidence info including image url and hashed value
+    // both fields are defined as string type
+    struct bidEvidence {
+        string imageUrl;
+        string hashValue;
+    }
+    struct NFTDelivery{
+        bidEvidence[] evidence;
+        string bidId;
+    }
+
+
+
+    // escrow info, recording the escrow state and late update time
+    enum EscrowTypes {putIn, takeOut}
+    struct escrowInfo {
+        EscrowTypes escrowType;
+        string updateTime;
+    }
+
+
+    constructor(string memory name, string memory symbol)  ERC721(name, symbol) {
+    }
+
+    // Maps internal ERC721 token ID to digital media release object.
+    mapping (uint256 => artWork) private tokenIdToArtWork;
+    mapping (uint256 => mapping(uint256=>artWorkImage)) private tokenIdToArtWorkImages;
+    // mapping (uint256 => txInfo ) private artWorkTx;
+
+
+    // record NFT transfer history and related information
+    mapping(uint256 => tradeInfo[]) public tradeOnChain;
+    mapping(uint256 => mapping(string => bidEvidence[])) public  deliveryOnChain;
+    mapping(uint256 => escrowInfo[]) public escrowOnChain;
+    
+    
+    address public implementation;
+    function setImpl(address impl) public onlyOwner {
+        implementation = impl;
+    }
+
+    function execute(bytes memory exeData) public onlyOwner {
+        (bool success, bytes memory returnData) = implementation.delegatecall(exeData);
+        assert(success);
+        // require(returnData.length != 0, "Invalid return data !");
+    }
+
+    function mintArtWorksToken(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId, string memory tokenURI) public onlyOwner {
+        bytes memory rData = abi.encodeWithSignature("mintArtWorksToken(artWork,artWorkImage[],uint256,string)", aw, awImages, tokenId, tokenURI);
+        execute(rData);
+    }
+    
+
+    function getFuncSig() public returns (bytes memory) {
+        bytes memory rData = abi.encodeWithSignature("mintArtWorksToken(artWork,artWorkImage[],uint256)");
+        return rData;
+    }
+
+    
+}
