@@ -1972,7 +1972,6 @@ contract ArtWorksNft is ERC721, Ownable {
         for (uint256 i=0; i < awImages.length; i++) {
             tokenIdToArtWorkImages[tokenId][i] = awImages[i];
         }
-        _setTokenURI(tokenId, tokenURI);
     }
 
     function getArtWorkByTokenId(uint256 tokenId) public view returns (artWork memory) {
