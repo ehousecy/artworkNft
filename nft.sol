@@ -1862,6 +1862,155 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
 }
 
 
+// File: contracts/ArtWorksNft.sol
+pragma solidity ^0.7.0;
+pragma abicoder v2;
+
+contract ArtWorksNft is ERC721, Ownable {
+    using SafeMath for uint256;
+    event UpdatedTradeInfo(uint256 indexed tokenId, string indexed bidId);
+    event DeliveredNFT(uint256 indexed tokenId, string indexed bidId);
+    event EscrowUpdated(uint256 indexed tokenId);
+
+    struct artWorkBasicInfo {
+        string name;
+        string number;
+        string author;
+        string createdEra;
+        string createdTime;
+        string style;
+
+        string dimensionType;
+        string length;
+        string width;
+        string height;
+        string caliber;
+        string capacity;
+        string weight;
+    }
+
+
+    struct artWorkImage {
+        string imageUrl;
+        string hash;
+    }
+
+
+    struct artWork {
+        artWorkBasicInfo awbi;
+        bool isDeposited;
+    }
+
+    //tradeInfo records the bid details, including bid location, bid time,
+    // bid identity, bid result, bid price
+    // each tradeInfo fields are defined as string
+    struct tradeInfo {
+        string bidLocation;
+        string bidTime;
+        string bidId;
+        string bidResult;
+        string bidPrice;
+    }
+
+    // bid evidence info including image url and hashed value
+    // both fields are defined as string type
+    struct bidEvidence {
+        string imageUrl;
+        string hashValue;
+    }
+    struct NFTDelivery{
+        bidEvidence[] evidence;
+        string bidId;
+    }
+
+
+
+    // escrow info, recording the escrow state and late update time
+    enum EscrowTypes {putIn, takeOut}
+    struct escrowInfo {
+        EscrowTypes escrowType;
+        string updateTime;
+    }
+
+
+    constructor(string memory name, string memory symbol)  ERC721(name, symbol) {
+    }
+
+    // Maps internal ERC721 token ID to digital media release object.
+    mapping (uint256 => artWork) private tokenIdToArtWork;
+    mapping (uint256 => mapping(uint256=>artWorkImage)) private tokenIdToArtWorkImages;
+    // mapping (uint256 => txInfo ) private artWorkTx;
+
+
+    // record NFT transfer history and related information
+    mapping(uint256 => tradeInfo[]) public tradeOnChain;
+    mapping(uint256 => mapping(string => bidEvidence[])) public  deliveryOnChain;
+    mapping(uint256 => escrowInfo[]) public escrowOnChain;
+
+
+    function mintArtWorksToken(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId, string memory tokenURI) public onlyOwner {
+        totalSupply().add(1);
+        _safeMint(msg.sender, tokenId);
+        tokenIdToArtWork[tokenId]=aw;
+        if (bytes(tokenURI).length > 0) {
+            _setTokenURI(tokenId, tokenURI);
+        }
+
+        for (uint256 i=0; i < awImages.length; i++) {
+            tokenIdToArtWorkImages[tokenId][i] = awImages[i];
+        }
+    }
+
+    function mintArtWorksToken2Owner(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId, string memory tokenURI, address owner) public onlyOwner {
+        totalSupply().add(1);
+        _safeMint(owner, tokenId);
+        tokenIdToArtWork[tokenId]=aw;
+        if (bytes(tokenURI).length > 0) {
+            _setTokenURI(tokenId, tokenURI);
+        }
+
+        for (uint256 i=0; i < awImages.length; i++) {
+            tokenIdToArtWorkImages[tokenId][i] = awImages[i];
+        }
+    }
+
+    function getArtWorkByTokenId(uint256 tokenId) public view returns (artWork memory) {
+        artWork memory aw = tokenIdToArtWork[tokenId];
+        return aw;
+    }
+
+    function getArtWorkImagesByTokenIdAndIndex(uint256 tokenId, uint256 index) public view returns (artWorkImage memory) {
+        mapping(uint256=>artWorkImage) storage imageMap = tokenIdToArtWorkImages[tokenId];
+        return imageMap[index];
+    }
+
+    // update bid info to blockchain
+    function updateTradeInfo(uint256 tokenId,  tradeInfo memory info) public onlyOwner{
+        require(_exists(tokenId), "ERC721: token not minted");
+        tradeInfo[] storage ti = tradeOnChain[tokenId];
+        ti.push(info);
+        emit UpdatedTradeInfo(tokenId, info.bidId);
+    }
+
+    function deliverNFT(uint256 tokenId, NFTDelivery memory delivery, address receiver) public {
+        require(delivery.evidence.length <= 4, "too much evidence");
+        mapping(string => bidEvidence[]) storage evidence = deliveryOnChain[tokenId];
+        bidEvidence[] storage newBE = evidence[delivery.bidId];
+        for ( uint8 i = 0; i< delivery.evidence.length; i++ ){
+            newBE.push(delivery.evidence[i]);
+        }
+        safeTransferFrom(msg.sender, receiver, tokenId);
+        emit DeliveredNFT(tokenId, delivery.bidId);
+    }
+
+    function updateEscrow(uint256 tokenId, escrowInfo memory info) public onlyOwner {
+        require(_exists(tokenId), "ERC721: token not minted");
+        escrowInfo[] storage escrowed = escrowOnChain[tokenId];
+        escrowed.push(info);
+        emit EscrowUpdated(tokenId);
+    }
+}
+
 // File: contracts/awnProxy.sol
 pragma solidity ^0.7.0;
 
