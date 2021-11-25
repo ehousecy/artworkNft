@@ -105,7 +105,7 @@
 |参数|类型|备注|
 |:---:|:---:|:---:|
 |tokenId|uint256|NFT token ID|
-|info|escrowInfo（struct），传参为tuple数组，不得超过4组，具体字段参考以下说明|交易凭证|
+|info|escrowInfo（struct），传参为tuple，具体字段参考以下说明|交易凭证|
 
 #### escrowInfo字段
 |参数|类型|备注|
