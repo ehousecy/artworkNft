@@ -67,7 +67,6 @@
 |参数|类型|备注|
 |:---:|:---:|:---:|
 |tokenId|uint256|艺术品nft的tokenId|
-|bidId|string|交易的ID|
 |info|tradeInfo（struct），传参为tuple，具体字段参考以下说明|交易信息|
 
 #### tradeInfo字段
@@ -75,6 +74,7 @@
 |:---:|:---:|:---:|
 |bidLocation|string|交易地点|
 |bidTime|string|交易时间|
+|bidId|string|交易的ID|
 |bidResult|string|交易结果|
 |bidPrice|string|交易价格|
 
