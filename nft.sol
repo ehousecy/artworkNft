@@ -2131,15 +2131,16 @@ contract awnProxy is ERC721, Ownable {
     function updateTradeInfo(uint256 tokenId,  tradeInfo memory info) public onlyOwner{
         bytes memory rData = abi.encodeWithSignature("updateTradeInfo(uint256,(string,string,string,string,string))", tokenId, info);
         execute(rData);
+        execute(rData);
     }
 
     function deliverNFT(uint256 tokenId, NFTDelivery memory delivery, address receiver) public {
-        bytes memory rData = abi.encodeWithSignature("deliverNFT(uint256,(string,string)[],address)", tokenId, delivery, receiver);
+        bytes memory rData = abi.encodeWithSignature("deliverNFT(uint256,((string,string)[],string),address)", tokenId, delivery, receiver);
         execute(rData);
     }
 
     function updateEscrow(uint256 tokenId, escrowInfo memory info) public onlyOwner {
-        bytes memory rData = abi.encodeWithSignature("updateEscrow(uint256,(uint256,string))", tokenId, info);
+        bytes memory rData = abi.encodeWithSignature("updateEscrow(uint256,(uint8,string))", tokenId, info);
         execute(rData);
     }
     
