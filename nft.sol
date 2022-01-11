@@ -2101,10 +2101,21 @@ contract awnProxy is ERC721, Ownable {
         implementation = impl;
     }
 
-    function execute(bytes memory exeData) public onlyOwner {
+
+    function execute(bytes memory exeData) public {
         (bool success, bytes memory returnData) = implementation.delegatecall(exeData);
+        if (!success) {
+            delete returnData[0];
+            delete returnData[1];
+            delete returnData[2];
+            delete returnData[3];
+        }
+        require(success,string(returnData));
+    }
+
+    function execute2(bytes memory exeData) public {
+        (bool success, ) = implementation.delegatecall(exeData);
         assert(success);
-        // require(returnData.length != 0, "Invalid return data !");
     }
 
     function mintArtWorksToken(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId, string memory tokenURI) public onlyOwner {
@@ -2131,7 +2142,6 @@ contract awnProxy is ERC721, Ownable {
     function updateTradeInfo(uint256 tokenId,  tradeInfo memory info) public onlyOwner{
         bytes memory rData = abi.encodeWithSignature("updateTradeInfo(uint256,(string,string,string,string,string))", tokenId, info);
         execute(rData);
-        execute(rData);
     }
 
     function deliverNFT(uint256 tokenId, NFTDelivery memory delivery, address receiver) public {
@@ -2142,6 +2152,11 @@ contract awnProxy is ERC721, Ownable {
     function updateEscrow(uint256 tokenId, escrowInfo memory info) public onlyOwner {
         bytes memory rData = abi.encodeWithSignature("updateEscrow(uint256,(uint8,string))", tokenId, info);
         execute(rData);
+    }
+
+
+    function addKV(string memory k, string memory v) public onlyOwner {
+        kvMap[k]=v;
     }
     
 }
