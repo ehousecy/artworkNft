@@ -5,9 +5,9 @@
 * transferArtworkReleases
 
 # 事件列表
-event CreateToken(uint256 indexed tokenId, string indexed artworkName);
-event ReleaseArtwork(uint256 indexed tokenId, address indexed newOwner);
-event TransferArtworkRelease(uint256 indexed tokenId, uint256 indexed categortyId, address owner, address newOwner);
+* event CreateToken(uint256 indexed tokenId, string indexed artworkName);
+* event ReleaseArtwork(uint256 indexed tokenId, address indexed newOwner);
+* event TransferArtworkRelease(uint256 indexed tokenId, uint256 indexed categortyId, address owner, address newOwner);
 
 
 ## mintTokens

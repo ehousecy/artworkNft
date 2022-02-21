@@ -2304,6 +2304,7 @@ pragma solidity ^0.7.0;
 
 contract derivativesNft is ERC721, Ownable {
     using SafeMath for uint256;
+    using EnumerableSet for EnumerableSet.UintSet;
     struct artWork {
         string name;
         string author;
@@ -2334,14 +2335,19 @@ contract derivativesNft is ERC721, Ownable {
     // mapping(uint256=>artworkRelease[]) public tokenId2ArtworkReleases;
     // mapping between an nft token 2 the sehemed number of artwork releases
     mapping(uint256=>uint256) public totalReleases;
-    mapping(uint256=>uint256[]) public availableCategories;
+    mapping (uint256 => EnumerableSet.UintSet) private availableCategories;
+    // mapping(uint256=>uint256[]) public availableCategories;
     mapping(uint256=>mapping(address=>artworkRelease[])) public owner2Releases;
-    
+
     event CreateToken(uint256 indexed tokenId, string indexed artworkName);
     event ReleaseArtwork(uint256 indexed tokenId, address indexed newOwner);
     event TransferArtworkRelease(uint256 indexed tokenId, uint256 indexed categortyId, address owner, address newOwner);
 
     constructor(string memory name, string memory symbol)  ERC721(name, symbol) {
+    }
+
+    function releaseBalanceOfOwner(uint256 tokenId, address owner) public view returns (uint256){
+        return owner2Releases[tokenId][owner].length;
     }
 
     function mintToken(uint256 tokenId, artWork memory aw, artworkCategory[] memory categories, string memory tokenURI, uint256 totalRelease) public onlyOwner {
@@ -2355,7 +2361,8 @@ contract derivativesNft is ERC721, Ownable {
             checkoutReleaseNum = checkoutReleaseNum.add(_category.releases);
             tokenId2Categories[tokenId][_category.categoryId] = _category;
             // artworkRelease memory awr = artworkRelease(_category.categoryId, msg.sender);
-            availableCategories[tokenId].push(_category.categoryId);
+            require(!availableCategories[tokenId].contains(_category.categoryId), "replicated category Id");
+            availableCategories[tokenId].add(_category.categoryId);
             // for (uint8 j=0; j < _category.releases; j++) {
             //     awrs.push(awr);
             // }
@@ -2371,25 +2378,26 @@ contract derivativesNft is ERC721, Ownable {
         emit CreateToken(tokenId, aw.name);
     }
 
-    function removeAvailableCategoryELement(uint256 tokenId, uint8 index) internal {
-        uint256[] storage acs = availableCategories[tokenId];
-        acs[index] = acs[acs.length -1];
-        acs.pop();        
-    }
+    // function removeAvailableCategoryELement(uint256 tokenId, uint8 index) internal {
+    //     uint256[] storage acs = availableCategories[tokenId];
+    //     acs[index] = acs[acs.length -1];
+    //     acs.pop();        
+    // }
 
 
     function releaseArtwork(uint256 tokenId, address newOwner) public onlyOwner{
         require(_exists(tokenId), "releaseArtwork: nonexistent token");
-        uint256 aCategorieslength = availableCategories[tokenId].length;
+        uint256 aCategorieslength = availableCategories[tokenId].length();
         uint8 artworkCategoryIndex = uint8(uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty))).mod(aCategorieslength));
         // uint8 artworkCategoryIndex = 1;
         // artworkCategory memory awc = tokenId2Categories[tokenId][artworkCategoryIndex];
-        uint256 categortyId = availableCategories[tokenId][artworkCategoryIndex];
+        uint256 categortyId = availableCategories[tokenId].at(artworkCategoryIndex);
         artworkCategory storage awc = tokenId2Categories[tokenId][categortyId];
         require(awc.onsale > 0, "awc has been sold out"); // this should not be triggered, since we fetch category from the available list
         awc.onsale--;
         if (awc.onsale < 1) {
-            removeAvailableCategoryELement(tokenId, artworkCategoryIndex);
+            availableCategories[tokenId].remove(artworkCategoryIndex);
+            // removeAvailableCategoryELement(tokenId, artworkCategoryIndex);
         }
         artworkRelease memory awr = artworkRelease(categortyId, newOwner);
         owner2Releases[tokenId][newOwner].push(awr);
