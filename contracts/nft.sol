@@ -2160,3 +2160,253 @@ contract awnProxy is ERC721, Ownable {
     }
     
 }
+
+
+
+// File: contracts/ArtWorksNft.sol
+pragma solidity ^0.7.0;
+// pragma abicoder v2;
+
+contract DigitalAssetsNft is ERC721, Ownable {
+    using SafeMath for uint256;
+    event UpdatedTradeInfo(uint256 indexed tokenId, string indexed bidId);
+    event DeliveredNFT(uint256 indexed tokenId, string indexed bidId);
+    event EscrowUpdated(uint256 indexed tokenId);
+
+    struct artWorkBasicInfo {
+        string name;
+        string number;
+        string author;
+        string createdEra;
+        string createdTime;
+        string style;
+
+        string dimensionType;
+        string length;
+        string width;
+        string height;
+        string caliber;
+        string capacity;
+        string weight;
+    }
+
+
+    struct artWorkImage {
+        string imageUrl;
+        string hash;
+    }
+
+
+    struct artWork {
+        artWorkBasicInfo awbi;
+        bool isDeposited;
+    }
+
+    //tradeInfo records the bid details, including bid location, bid time,
+    // bid identity, bid result, bid price
+    // each tradeInfo fields are defined as string
+    struct tradeInfo {
+        string bidLocation;
+        string bidTime;
+        string bidId;
+        string bidResult;
+        string bidPrice;
+    }
+
+    // bid evidence info including image url and hashed value
+    // both fields are defined as string type
+    struct bidEvidence {
+        string imageUrl;
+        string hashValue;
+    }
+    struct NFTDelivery{
+        bidEvidence[] evidence;
+        string bidId;
+    }
+
+
+
+    // escrow info, recording the escrow state and late update time
+    enum EscrowTypes {putIn, takeOut}
+    struct escrowInfo {
+        EscrowTypes escrowType;
+        string updateTime;
+    }
+
+
+    constructor(string memory name, string memory symbol)  ERC721(name, symbol) {
+    }
+
+    // Maps internal ERC721 token ID to digital media release object.
+    mapping (uint256 => artWork) private tokenIdToArtWork;
+    mapping (uint256 => mapping(uint256=>artWorkImage)) private tokenIdToArtWorkImages;
+    // mapping (uint256 => txInfo ) private artWorkTx;
+
+
+    // record NFT transfer history and related information
+    mapping(uint256 => tradeInfo[]) public tradeOnChain;
+    mapping(uint256 => mapping(string => bidEvidence[])) public  deliveryOnChain;
+    mapping(uint256 => escrowInfo[]) public escrowOnChain;
+
+
+    function mintArtWorksToken(artWork memory aw, artWorkImage[] memory awImages, uint256 tokenId, string memory tokenURI) public onlyOwner {
+        totalSupply().add(1);
+        _safeMint(msg.sender, tokenId);
+        tokenIdToArtWork[tokenId]=aw;
+        if (bytes(tokenURI).length > 0) {
+            _setTokenURI(tokenId, tokenURI);
+        }
+
+        for (uint256 i=0; i < awImages.length; i++) {
+            tokenIdToArtWorkImages[tokenId][i] = awImages[i];
+        }
+    }
+
+
+    function getArtWorkByTokenId(uint256 tokenId) public view returns (artWork memory) {
+        artWork memory aw = tokenIdToArtWork[tokenId];
+        return aw;
+    }
+
+    function getArtWorkImagesByTokenIdAndIndex(uint256 tokenId, uint256 index) public view returns (artWorkImage memory) {
+        mapping(uint256=>artWorkImage) storage imageMap = tokenIdToArtWorkImages[tokenId];
+        return imageMap[index];
+    }
+
+    // update bid info to blockchain
+    function updateTradeInfo(uint256 tokenId,  tradeInfo memory info) public onlyOwner{
+        require(_exists(tokenId), "ERC721: token not minted");
+        tradeInfo[] storage ti = tradeOnChain[tokenId];
+        ti.push(info);
+        emit UpdatedTradeInfo(tokenId, info.bidId);
+    }
+
+    function deliverNFT(uint256 tokenId, NFTDelivery memory delivery, address receiver) public {
+        require(delivery.evidence.length <= 4, "too much evidence");
+        mapping(string => bidEvidence[]) storage evidence = deliveryOnChain[tokenId];
+        bidEvidence[] storage newBE = evidence[delivery.bidId];
+        for ( uint8 i = 0; i< delivery.evidence.length; i++ ){
+            newBE.push(delivery.evidence[i]);
+        }
+        safeTransferFrom(msg.sender, receiver, tokenId);
+        emit DeliveredNFT(tokenId, delivery.bidId);
+    }
+
+    function updateEscrow(uint256 tokenId, escrowInfo memory info) public onlyOwner {
+        require(_exists(tokenId), "ERC721: token not minted");
+        escrowInfo[] storage escrowed = escrowOnChain[tokenId];
+        escrowed.push(info);
+        emit EscrowUpdated(tokenId);
+    }
+}
+
+pragma solidity ^0.7.0;
+
+contract assetsNft is ERC721, Ownable {
+    using SafeMath for uint256;
+    struct artWork {
+        string name;
+        string author;
+        string issuer;
+        string proprietors;
+        string producer;
+        string designer;
+    }
+    
+    struct artworkCategory {
+        uint256 categoryId;
+        string typeName;
+        string image;
+        uint256 releases;
+        uint256 onsale;
+    }
+    
+    struct artworkRelease {
+        uint256 categoryId;
+        address owner;
+    }
+
+    // mapping between an nft token 2 an artwork that includes serverl categories
+    mapping(uint256=>artWork) public tokenId2Artwork;
+    // mapping between an nft token 2 an artwork category
+    mapping(uint256=>mapping(uint256=>artworkCategory)) public tokenId2Categories;
+    // mapping between an nft token 2 several releases artworks
+    // mapping(uint256=>artworkRelease[]) public tokenId2ArtworkReleases;
+    // mapping between an nft token 2 the sehemed number of artwork releases
+    mapping(uint256=>uint256) public totalReleases;
+    mapping(uint256=>uint256[]) public availableCategories;
+    mapping(uint256=>mapping(address=>artworkRelease[])) public owner2Releases;
+    
+    constructor(string memory name, string memory symbol)  ERC721(name, symbol) {
+    }
+
+    function mintTokens(uint256 tokenId, artWork memory aw, artworkCategory[] memory categories, string memory tokenURI, uint256 totalRelease) public onlyOwner {
+        require(totalRelease > 0 && categories.length > 0 && categories.length < 10, "either totalRelease < 1 or number of artwork categories not correct");
+        tokenId2Artwork[tokenId]=aw;
+
+        uint256 releaseNum = 0;
+        // artworkRelease[] storage awrs;
+        for(uint256 i=0; i < categories.length; i++) {
+            artworkCategory memory _category = categories[i];
+            _category.onsale = _category.releases;
+            releaseNum.add(_category.releases);
+            tokenId2Categories[tokenId][_category.categoryId] = _category;
+            // artworkRelease memory awr = artworkRelease(_category.categoryId, msg.sender);
+            availableCategories[tokenId].push(_category.categoryId);
+            // for (uint8 j=0; j < _category.releases; j++) {
+            //     awrs.push(awr);
+            // }
+        }
+        // require(releaseNum == totalRelease, "release numbers do not match the total releases");
+        totalReleases[tokenId] = totalRelease;
+        // tokenId2ArtworkReleases[tokenId] = awrs;
+        totalSupply().add(1);
+        _safeMint(msg.sender, tokenId);
+        if (bytes(tokenURI).length > 0) {
+            _setTokenURI(tokenId, tokenURI);
+        }
+    }
+
+    function removeAvailableCategoryELement(uint256 tokenId, uint8 index) internal {
+        uint256[] storage acs = availableCategories[tokenId];
+        acs[index] = acs[acs.length -1];
+        acs.pop();        
+    }
+
+
+    function releaseArtwork(uint256 tokenId, address newOwner) public onlyOwner{
+        require(_exists(tokenId), "releaseArtwork: nonexistent token");
+        uint256 aCategorieslength = availableCategories[tokenId].length;
+        uint8 artworkCategoryIndex = uint8(uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty))).mod(aCategorieslength));
+        // uint8 artworkCategoryIndex = 1;
+        // artworkCategory memory awc = tokenId2Categories[tokenId][artworkCategoryIndex];
+        uint256 categortyId = availableCategories[tokenId][artworkCategoryIndex];
+        artworkCategory storage awc = tokenId2Categories[tokenId][categortyId];
+        require(awc.onsale > 0, "awc has been sold out"); // this should not be triggered, since we fetch category from the available list
+        awc.onsale--;
+        if (awc.onsale < 1) {
+            removeAvailableCategoryELement(tokenId, artworkCategoryIndex);
+        }
+        artworkRelease memory awr = artworkRelease(categortyId, newOwner);
+        owner2Releases[tokenId][newOwner].push(awr);
+    }
+
+
+
+    function transferArtworkReleases(uint256 tokenId, uint256 artworkCategoryId, address newOwner) public {
+        require(_exists(tokenId), "transferArtworkReleases: nonexistent token");
+        artworkCategory memory awc = tokenId2Categories[tokenId][artworkCategoryId];
+        require(bytes(awc.typeName).length > 0, "category not found");
+        artworkRelease[] storage awrs = owner2Releases[tokenId][msg.sender];
+        require(awrs.length > 0, "msg sender does not have any of this artwork realese");
+        for (uint8 i=0; i < awrs.length; i++) {
+            if (awrs[i].categoryId == artworkCategoryId && awrs[i].owner == msg.sender) {
+                awrs[i] = awrs[awrs.length -1];
+                awrs.pop();
+                artworkRelease memory _awr = artworkRelease(artworkCategoryId, newOwner);
+                owner2Releases[tokenId][newOwner].push(_awr);  
+                break;
+            }            
+        }
+    }
+}
