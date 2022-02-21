@@ -2302,7 +2302,7 @@ contract DigitalAssetsNft is ERC721, Ownable {
 
 pragma solidity ^0.7.0;
 
-contract assetsNft is ERC721, Ownable {
+contract derivativesNft is ERC721, Ownable {
     using SafeMath for uint256;
     struct artWork {
         string name;
@@ -2337,19 +2337,22 @@ contract assetsNft is ERC721, Ownable {
     mapping(uint256=>uint256[]) public availableCategories;
     mapping(uint256=>mapping(address=>artworkRelease[])) public owner2Releases;
     
+    event CreateToken(uint256 indexed tokenId, string indexed artworkName);
+    event ReleaseArtwork(uint256 indexed tokenId, address indexed newOwner);
+    event TransferArtworkRelease(uint256 indexed tokenId, uint256 indexed categortyId, address owner, address newOwner);
+
     constructor(string memory name, string memory symbol)  ERC721(name, symbol) {
     }
 
-    function mintTokens(uint256 tokenId, artWork memory aw, artworkCategory[] memory categories, string memory tokenURI, uint256 totalRelease) public onlyOwner {
+    function mintToken(uint256 tokenId, artWork memory aw, artworkCategory[] memory categories, string memory tokenURI, uint256 totalRelease) public onlyOwner {
         require(totalRelease > 0 && categories.length > 0 && categories.length < 10, "either totalRelease < 1 or number of artwork categories not correct");
         tokenId2Artwork[tokenId]=aw;
-
-        uint256 releaseNum = 0;
+        uint256 checkoutReleaseNum;
         // artworkRelease[] storage awrs;
         for(uint256 i=0; i < categories.length; i++) {
             artworkCategory memory _category = categories[i];
             _category.onsale = _category.releases;
-            releaseNum.add(_category.releases);
+            checkoutReleaseNum = checkoutReleaseNum.add(_category.releases);
             tokenId2Categories[tokenId][_category.categoryId] = _category;
             // artworkRelease memory awr = artworkRelease(_category.categoryId, msg.sender);
             availableCategories[tokenId].push(_category.categoryId);
@@ -2357,7 +2360,7 @@ contract assetsNft is ERC721, Ownable {
             //     awrs.push(awr);
             // }
         }
-        // require(releaseNum == totalRelease, "release numbers do not match the total releases");
+        require(checkoutReleaseNum == totalRelease, "release numbers do not match the total releases");
         totalReleases[tokenId] = totalRelease;
         // tokenId2ArtworkReleases[tokenId] = awrs;
         totalSupply().add(1);
@@ -2365,6 +2368,7 @@ contract assetsNft is ERC721, Ownable {
         if (bytes(tokenURI).length > 0) {
             _setTokenURI(tokenId, tokenURI);
         }
+        emit CreateToken(tokenId, aw.name);
     }
 
     function removeAvailableCategoryELement(uint256 tokenId, uint8 index) internal {
@@ -2389,11 +2393,12 @@ contract assetsNft is ERC721, Ownable {
         }
         artworkRelease memory awr = artworkRelease(categortyId, newOwner);
         owner2Releases[tokenId][newOwner].push(awr);
+        emit ReleaseArtwork(tokenId, newOwner);
     }
 
 
 
-    function transferArtworkReleases(uint256 tokenId, uint256 artworkCategoryId, address newOwner) public {
+    function transferArtworkRelease(uint256 tokenId, uint256 artworkCategoryId, address newOwner) public {
         require(_exists(tokenId), "transferArtworkReleases: nonexistent token");
         artworkCategory memory awc = tokenId2Categories[tokenId][artworkCategoryId];
         require(bytes(awc.typeName).length > 0, "category not found");
@@ -2408,5 +2413,6 @@ contract assetsNft is ERC721, Ownable {
                 break;
             }            
         }
+        emit TransferArtworkRelease(tokenId, artworkCategoryId, msg.sender, newOwner);
     }
 }
