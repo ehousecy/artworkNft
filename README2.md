@@ -1,6 +1,6 @@
 # 接口
 接口列表
-* mintTokens
+* mintToken
 * releaseArtwork
 * transferArtworkReleases
 
@@ -10,7 +10,7 @@
 * event TransferArtworkRelease(uint256 indexed tokenId, uint256 indexed categortyId, address owner, address newOwner);
 
 
-## mintTokens
+## mintToken
 创建数字衍生品token以及相关信息，触发CreateToken
 
 |参数|类型|备注|
