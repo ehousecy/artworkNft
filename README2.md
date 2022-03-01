@@ -64,6 +64,8 @@
 |参数|类型|备注|
 |:---:|:---:|:---:|
 |tokenId|uint256|nft的tokenId|
+|categoryId|uint256|衍生品分类id| 
+|awReleaseId|string|发布的衍生品id|
 |newOwner|address|衍生品购买者的地址|
 
 ## transferArtworkReleases    
@@ -72,5 +74,5 @@
 |参数|类型|备注|
 |:---:|:---:|:---:|
 |tokenId|uint256|nft的tokenId|
-|artworkCategoryId|uint256|衍生品种类的id|
+|awReleaseId|string|发布的衍生品id|
 |newOwner|address|衍生品购买者的地址|
