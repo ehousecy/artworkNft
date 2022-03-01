@@ -1,3 +1,5 @@
+# 合约地址
+cfxtest:acb0erc3z4rrde6h595wgcd2bnhan7tc2ee1tup9tg
 # 接口
 接口列表
 * mintToken
