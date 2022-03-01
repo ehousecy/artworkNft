@@ -1035,10 +1035,6 @@ library Strings {
 
 
 
-
-
-
-
 // File: @openzeppelin/contracts/introspection/IERC165.sol
 pragma solidity >=0.6.0 <0.8.0;
 
@@ -2309,7 +2305,7 @@ contract derivativesNft is ERC721, Ownable {
         string name;
         string author;
         string issuer;
-        string proprietors;
+        string copyRightOwner;
         string producer;
         string designer;
     }
@@ -2323,31 +2319,36 @@ contract derivativesNft is ERC721, Ownable {
     }
     
     struct artworkRelease {
+        string awReleaseId;
         uint256 categoryId;
         address owner;
     }
 
     // mapping between an nft token 2 an artwork that includes serverl categories
-    mapping(uint256=>artWork) public tokenId2Artwork;
+    mapping(uint256 => artWork) public tokenId2Artwork;
     // mapping between an nft token 2 an artwork category
-    mapping(uint256=>mapping(uint256=>artworkCategory)) public tokenId2Categories;
-    // mapping between an nft token 2 several releases artworks
-    // mapping(uint256=>artworkRelease[]) public tokenId2ArtworkReleases;
+    mapping(uint256 => mapping(uint256=>artworkCategory)) public tokenId2Categories;
     // mapping between an nft token 2 the sehemed number of artwork releases
-    mapping(uint256=>uint256) public totalReleases;
-    mapping (uint256 => EnumerableSet.UintSet) private availableCategories;
+    mapping(uint256 => uint256) public totalReleases;
+    mapping(uint256 => EnumerableSet.UintSet) private availableCategories;
+    mapping(uint256 => mapping(string=>artworkRelease)) public tokenId2Releases;
+    mapping(uint256 => string[]) public tokenId2ReleaseIds;
     // mapping(uint256=>uint256[]) public availableCategories;
-    mapping(uint256=>mapping(address=>artworkRelease[])) public owner2Releases;
+    mapping(uint256 => mapping(address=>artworkRelease[])) public owner2Releases;
 
     event CreateToken(uint256 indexed tokenId, string indexed artworkName);
-    event ReleaseArtwork(uint256 indexed tokenId, address indexed newOwner);
-    event TransferArtworkRelease(uint256 indexed tokenId, uint256 indexed categortyId, address owner, address newOwner);
+    event ReleaseArtwork(uint256 indexed tokenId, string awId, address indexed newOwner);
+    event TransferArtworkRelease(uint256 indexed tokenId, string awReleaseId, address owner, address newOwner);
 
     constructor(string memory name, string memory symbol)  ERC721(name, symbol) {
     }
 
     function releaseBalanceOfOwner(uint256 tokenId, address owner) public view returns (uint256){
         return owner2Releases[tokenId][owner].length;
+    }
+
+    function getAvailableCategorieByIndex(uint256 tokenId, uint256 _index) public view returns (uint256) {
+        return availableCategories[tokenId].at(_index);
     }
 
     function mintToken(uint256 tokenId, artWork memory aw, artworkCategory[] memory categories, string memory tokenURI, uint256 totalRelease) public onlyOwner {
@@ -2385,42 +2386,44 @@ contract derivativesNft is ERC721, Ownable {
     // }
 
 
-    function releaseArtwork(uint256 tokenId, address newOwner) public onlyOwner{
+    function releaseArtwork(uint256 tokenId, uint256 categoryId, string memory awReleaseId, address newOwner) public onlyOwner{
         require(_exists(tokenId), "releaseArtwork: nonexistent token");
-        uint256 aCategorieslength = availableCategories[tokenId].length();
-        uint8 artworkCategoryIndex = uint8(uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty))).mod(aCategorieslength));
-        // uint8 artworkCategoryIndex = 1;
-        // artworkCategory memory awc = tokenId2Categories[tokenId][artworkCategoryIndex];
-        uint256 categortyId = availableCategories[tokenId].at(artworkCategoryIndex);
-        artworkCategory storage awc = tokenId2Categories[tokenId][categortyId];
+
+        artworkCategory storage awc = tokenId2Categories[tokenId][categoryId];
         require(awc.onsale > 0, "awc has been sold out"); // this should not be triggered, since we fetch category from the available list
         awc.onsale--;
         if (awc.onsale < 1) {
-            availableCategories[tokenId].remove(artworkCategoryIndex);
+            availableCategories[tokenId].remove(categoryId);
             // removeAvailableCategoryELement(tokenId, artworkCategoryIndex);
         }
-        artworkRelease memory awr = artworkRelease(categortyId, newOwner);
-        owner2Releases[tokenId][newOwner].push(awr);
-        emit ReleaseArtwork(tokenId, newOwner);
+        artworkRelease memory awRelease = artworkRelease(awReleaseId, categoryId, newOwner);
+
+        require(tokenId2Releases[tokenId][awReleaseId].owner == address(0),"already existed release");
+        emit TransferArtworkRelease(tokenId, awReleaseId, address(0), msg.sender);
+        tokenId2ReleaseIds[tokenId].push(awReleaseId);
+        tokenId2Releases[tokenId][awReleaseId] = awRelease;
+        owner2Releases[tokenId][newOwner].push(awRelease);
+        emit TransferArtworkRelease(tokenId, awReleaseId, msg.sender, newOwner);
+        emit ReleaseArtwork(tokenId, awReleaseId, newOwner);
     }
 
 
 
-    function transferArtworkRelease(uint256 tokenId, uint256 artworkCategoryId, address newOwner) public {
+    function transferArtworkRelease(uint256 tokenId, string memory awReleaseId, address newOwner) public {
         require(_exists(tokenId), "transferArtworkReleases: nonexistent token");
-        artworkCategory memory awc = tokenId2Categories[tokenId][artworkCategoryId];
-        require(bytes(awc.typeName).length > 0, "category not found");
+        artworkRelease storage awRelease = tokenId2Releases[tokenId][awReleaseId];
+        require(awRelease.owner == msg.sender, "msg sender is not the release owner");
         artworkRelease[] storage awrs = owner2Releases[tokenId][msg.sender];
-        require(awrs.length > 0, "msg sender does not have any of this artwork realese");
+        require(awrs.length > 0, "msg sender does not have any artwork realese of this token");
         for (uint8 i=0; i < awrs.length; i++) {
-            if (awrs[i].categoryId == artworkCategoryId && awrs[i].owner == msg.sender) {
+            if (awrs[i].owner == msg.sender) {
                 awrs[i] = awrs[awrs.length -1];
                 awrs.pop();
-                artworkRelease memory _awr = artworkRelease(artworkCategoryId, newOwner);
-                owner2Releases[tokenId][newOwner].push(_awr);  
                 break;
             }            
         }
-        emit TransferArtworkRelease(tokenId, artworkCategoryId, msg.sender, newOwner);
+        tokenId2Releases[tokenId][awReleaseId]=awRelease;
+        owner2Releases[tokenId][newOwner].push(awRelease);
+        emit TransferArtworkRelease(tokenId, awReleaseId, msg.sender, newOwner);
     }
 }
