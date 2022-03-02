@@ -70,7 +70,7 @@ cfxtest:acb0erc3z4rrde6h595wgcd2bnhan7tc2ee1tup9tg
 |awReleaseId|string|发布的衍生品id|
 |newOwner|address|衍生品购买者的地址|
 
-## transferArtworkReleases    
+## transferArtworkRelease   
 交割衍生品，触发TransferArtworkRelease
 
 |参数|类型|备注|
