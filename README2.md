@@ -23,6 +23,7 @@ cfxtest:acgpt4e14t9dxxrn7gsw110n9fr516wnky7juugfda
 |categories|artworkCategory（struct）数组，传参为tuple数组，具体字段参考以下说明|艺术品的分类信息|
 |tokenURI|string|token的链接，可为空|
 |totalRelease|uint256|总的可发布艺术品数量|
+|tokenOwner|address|token的拥有者|
 
 传参示例
 ```
