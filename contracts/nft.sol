@@ -2351,7 +2351,7 @@ contract derivativesNft is ERC721, Ownable {
         return availableCategories[tokenId].at(_index);
     }
 
-    function mintToken(uint256 tokenId, artWork memory aw, artworkCategory[] memory categories, string memory tokenURI, uint256 totalRelease) public onlyOwner {
+    function mintToken(uint256 tokenId, artWork memory aw, artworkCategory[] memory categories, string memory tokenURI, uint256 totalRelease, address tokenOwner) public onlyOwner {
         require(totalRelease > 0 && categories.length > 0 && categories.length < 10, "either totalRelease < 1 or number of artwork categories not correct");
         tokenId2Artwork[tokenId]=aw;
         uint256 checkoutReleaseNum;
@@ -2372,7 +2372,7 @@ contract derivativesNft is ERC721, Ownable {
         totalReleases[tokenId] = totalRelease;
         // tokenId2ArtworkReleases[tokenId] = awrs;
         totalSupply().add(1);
-        _safeMint(msg.sender, tokenId);
+        _safeMint(tokenOwner, tokenId);
         if (bytes(tokenURI).length > 0) {
             _setTokenURI(tokenId, tokenURI);
         }
