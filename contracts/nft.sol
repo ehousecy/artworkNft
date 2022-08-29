@@ -18,6 +18,9 @@ pragma solidity >=0.6.0 <0.8.0;
  *
  * This contract is only required for intermediate, library-like contracts.
  */
+
+// go generator: cfxabigen --abi greeter.abi/derivativesNft.abi --pkg main --type derivativesNft  --out token.go
+//  solc --abi Greeter.sol -o greeter.abi
 abstract contract Context {
     function _msgSender() internal view virtual returns (address payable) {
         return msg.sender;
