@@ -18,6 +18,9 @@
  *
  */
 
+// go generator: cfxabigen --abi greeter.abi/derivativesNft.abi --pkg main --type derivativesNft  --out token.go
+//  solc --abi Greeter.sol -o greeter.abi
+
 // const HDWalletProvider = require('@truffle/hdwallet-provider');
 //
 // const fs = require('fs');
